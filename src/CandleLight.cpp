@@ -57,12 +57,10 @@ DEV_CandleLight::DEV_CandleLight() : Service::LightBulb()
 
     // Initialize power button with internal pullup (active LOW)
     pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
-    buttonDebounceTimer = 0;
-    buttonLastStableState = HIGH;
-    buttonCurrentReading = HIGH;
-    buttonPreviousReading = HIGH;
+    buttonState = BTN_IDLE;
+    buttonStateTimer = 0;
     buttonPressStartTime = 0;
-    longPressTriggered = false;
+    buttonLastReading = HIGH;
 
     // Initialize smoothing arrays to midpoint of flicker range
     // This prevents large jumps on first animation frame
@@ -171,67 +169,103 @@ void DEV_CandleLight::loop()
 
 void DEV_CandleLight::handlePowerButton()
 {
-    // Read current button state
-    buttonCurrentReading = digitalRead(POWER_BUTTON_PIN);
+    bool currentReading = digitalRead(POWER_BUTTON_PIN);
+    uint32_t now = millis();
 
-    // Reset timer if state changed
-    if (buttonCurrentReading != buttonPreviousReading)
+    switch (buttonState)
     {
-        buttonDebounceTimer = millis();
-    }
-
-    // Check if state has been stable long enough
-    if ((millis() - buttonDebounceTimer) > DEBOUNCE_DELAY)
-    {
-        // State has changed from last stable state
-        if (buttonCurrentReading != buttonLastStableState)
+    case BTN_IDLE:
+        // Monitor for button press (HIGH→LOW edge)
+        if (buttonLastReading == HIGH && currentReading == LOW)
         {
-            buttonLastStableState = buttonCurrentReading;
-
-            // Button press detected (HIGH→LOW transition)
-            if (buttonLastStableState == LOW)
-            {
-                // Record press start time for long press detection
-                buttonPressStartTime = millis();
-                longPressTriggered = false;
-            }
-            // Button release detected (LOW→HIGH transition)
-            else if (buttonLastStableState == HIGH)
-            {
-                // Only toggle power if it was a short press (not long press)
-                if (!longPressTriggered)
-                {
-                    power->setVal(!power->getVal());
-                    Serial.print("Power button pressed - Lamp ");
-                    Serial.println(power->getVal() ? "ON" : "OFF");
-                }
-                // Reset long press flag for next press
-                longPressTriggered = false;
-            }
+            buttonState = BTN_DEBOUNCING_PRESS;
+            buttonStateTimer = now;
         }
-        // Button is being held down (stable LOW state)
-        else if (buttonLastStableState == LOW && !longPressTriggered)
+        break;
+
+    case BTN_DEBOUNCING_PRESS:
+        // Wait for stable LOW reading
+        if (currentReading == HIGH)
         {
-            // Check if long press duration exceeded
-            if ((millis() - buttonPressStartTime) >= LONG_PRESS_DURATION)
-            {
-                longPressTriggered = true;
-
-                // Trigger WiFi AP mode (timeout already set in main.cpp setup)
-                homeSpan.processSerialCommand("A"); // Start AP mode
-
-                Serial.println("\n*** LONG PRESS DETECTED ***");
-                Serial.println("WiFi AP mode enabled for 5 minutes");
-                Serial.print("Connect to: ");
-                Serial.println(WIFI_AP_SSID);
-                Serial.println("AP will auto-disable after timeout");
-                Serial.println("***************************\n");
-            }
+            // Button bounced back to HIGH, return to idle
+            buttonState = BTN_IDLE;
         }
+        else if ((now - buttonStateTimer) >= DEBOUNCE_DELAY)
+        {
+            // Stable LOW confirmed, press accepted
+            buttonState = BTN_PRESSED;
+            buttonPressStartTime = now;  // Record when press was confirmed
+        }
+        break;
+
+    case BTN_PRESSED:
+        // Monitor for release or long press threshold
+        if (currentReading == HIGH)
+        {
+            // Release detected, begin debouncing short release
+            buttonState = BTN_DEBOUNCING_SHORT_RELEASE;
+            buttonStateTimer = now;  // Start debounce timer for release
+        }
+        else if ((now - buttonPressStartTime) >= LONG_PRESS_DURATION)
+        {
+            // Long press threshold reached, trigger WiFi AP mode
+            buttonState = BTN_LONG_PRESS_ACTIVE;
+
+            homeSpan.processSerialCommand("A");
+            Serial.println("\n*** LONG PRESS DETECTED ***");
+            Serial.println("WiFi AP mode enabled for 5 minutes");
+            Serial.print("Connect to: ");
+            Serial.println(WIFI_AP_SSID);
+            Serial.println("AP will auto-disable after timeout");
+            Serial.println("***************************\n");
+        }
+        break;
+
+    case BTN_LONG_PRESS_ACTIVE:
+        // Wait for button release
+        if (currentReading == HIGH)
+        {
+            // Release detected, begin debouncing long release
+            buttonState = BTN_DEBOUNCING_LONG_RELEASE;
+            buttonStateTimer = now;
+        }
+        break;
+
+    case BTN_DEBOUNCING_SHORT_RELEASE:
+        // Wait for stable HIGH reading after short press
+        if (currentReading == LOW)
+        {
+            // Bounced back to LOW, return to pressed state
+            buttonState = BTN_PRESSED;
+        }
+        else if ((now - buttonStateTimer) >= DEBOUNCE_DELAY)
+        {
+            // Stable HIGH confirmed, execute short press action
+            power->setVal(!power->getVal());
+            Serial.print("Power button pressed - Lamp ");
+            Serial.println(power->getVal() ? "ON" : "OFF");
+
+            buttonState = BTN_IDLE;
+        }
+        break;
+
+    case BTN_DEBOUNCING_LONG_RELEASE:
+        // Wait for stable HIGH reading after long press
+        if (currentReading == LOW)
+        {
+            // Bounced back to LOW, return to long press active
+            buttonState = BTN_LONG_PRESS_ACTIVE;
+        }
+        else if ((now - buttonStateTimer) >= DEBOUNCE_DELAY)
+        {
+            // Stable HIGH confirmed, release accepted (no action needed)
+            buttonState = BTN_IDLE;
+        }
+        break;
     }
 
     // Save current reading for next iteration
-    buttonPreviousReading = buttonCurrentReading;
+    buttonLastReading = currentReading;
 }
 
 // ============================================================================

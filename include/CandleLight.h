@@ -63,15 +63,31 @@ struct DEV_CandleLight : Service::LightBulb
     SpanCharacteristic *brightness;   // Brightness (0-100%)
 
     // ========================================================================
-    // BUTTON STATE TRACKING
+    // BUTTON STATE MACHINE
     // ========================================================================
 
-    uint32_t buttonDebounceTimer;     // Debounce timer (milliseconds)
-    bool buttonLastStableState;       // Last confirmed stable button state
-    bool buttonCurrentReading;        // Current GPIO reading
-    bool buttonPreviousReading;       // Previous GPIO reading
-    uint32_t buttonPressStartTime;    // When button press started (for long press)
-    bool longPressTriggered;          // Flag to prevent multiple long press triggers
+    /**
+     * Button state machine states
+     *
+     * State transitions:
+     * BTN_IDLE -> BTN_DEBOUNCING_PRESS -> BTN_PRESSED -> BTN_DEBOUNCING_SHORT_RELEASE -> BTN_IDLE (toggle power)
+     *                                      |
+     *                                      v
+     *                              BTN_LONG_PRESS_ACTIVE -> BTN_DEBOUNCING_LONG_RELEASE -> BTN_IDLE
+     */
+    enum ButtonState {
+        BTN_IDLE,                       // Button not pressed, waiting for input
+        BTN_DEBOUNCING_PRESS,           // Button press detected, debouncing in progress
+        BTN_PRESSED,                    // Stable press confirmed, monitoring for long press
+        BTN_LONG_PRESS_ACTIVE,          // Long press threshold reached, WiFi AP triggered
+        BTN_DEBOUNCING_SHORT_RELEASE,   // Short press release detected, debouncing
+        BTN_DEBOUNCING_LONG_RELEASE     // Long press release detected, debouncing
+    };
+
+    ButtonState buttonState;        // Current button state
+    uint32_t buttonStateTimer;      // Timestamp for debounce timing
+    uint32_t buttonPressStartTime;  // Timestamp when press was confirmed (for long press detection)
+    bool buttonLastReading;         // Previous GPIO reading for edge detection
 
     // ========================================================================
     // FLICKER STATE
@@ -137,14 +153,15 @@ struct DEV_CandleLight : Service::LightBulb
 
 private:
     /**
-     * Handle power button press with debouncing and long press detection
+     * Handle power button press with state machine logic
      *
-     * Uses stable-state detection algorithm:
-     * 1. Read current button state
-     * 2. If changed from previous, reset timer
-     * 3. If stable for DEBOUNCE_DELAY ms, accept new state
-     * 4. Short press: Toggle power (HIGH→LOW transition)
-     * 5. Long press (3 sec): Enable WiFi AP mode for 5 minutes
+     * State machine behavior:
+     * - BTN_IDLE: Monitor for button press (HIGH→LOW edge)
+     * - BTN_DEBOUNCING_PRESS: Wait DEBOUNCE_DELAY for stable LOW, reject bounces
+     * - BTN_PRESSED: Monitor hold duration, detect release or long press threshold
+     * - BTN_LONG_PRESS_ACTIVE: Long press (3 sec) triggered WiFi AP, wait for release
+     * - BTN_DEBOUNCING_SHORT_RELEASE: Wait DEBOUNCE_DELAY for stable HIGH, then toggle power
+     * - BTN_DEBOUNCING_LONG_RELEASE: Wait DEBOUNCE_DELAY for stable HIGH, no action
      */
     void handlePowerButton();
 
