@@ -18,6 +18,7 @@ A realistic candle light simulator for ESP32 with HomeKit integration, featuring
 - Full Siri control ("Hey Siri, turn on Aladdin Lamp")
 - Color selection (HSV)
 - Brightness control via LED count (0-8 LEDs per strip)
+- Identify feature (flashes white 3x when tapped in Home app)
 - Syncs across all Apple devices
 
 💡 **Dual LED Strips**
@@ -194,10 +195,10 @@ While connected via serial monitor, use HomeSpan CLI:
 aladdin-lamp-code/
 ├── include/
 │   ├── config.h              # Configuration constants
-│   └── CandleLight.h         # DEV_CandleLight class declaration
+│   └── CandleLight.h         # DEV_CandleLight and DEV_Identify class declarations
 ├── src/
 │   ├── main.cpp              # Application entry point
-│   └── CandleLight.cpp       # DEV_CandleLight implementation
+│   └── CandleLight.cpp       # DEV_CandleLight and DEV_Identify implementations
 ├── test/
 │   ├── test_config/          # Configuration validation tests
 │   ├── test_flicker/         # Flicker algorithm tests
@@ -242,8 +243,8 @@ aladdin-lamp-code/
 
 **WiFi won't connect**
 - Check 2.4GHz WiFi (5GHz not supported)
-- Long press power button (GPIO 0) for 3 seconds to enable WiFi AP
-- Alternatively, factory reset via button on GPIO 39 (long press)
+- Long press power button (GPIO 0) for >3 seconds to enable WiFi AP
+- Alternatively, factory reset via button on GPIO 39 (long press >10 seconds)
 - Look for "Aladdin-Setup" AP
 
 **HomeKit pairing fails**

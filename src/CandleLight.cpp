@@ -1,9 +1,9 @@
 /**
  * @file CandleLight.cpp
- * @brief Implementation of DEV_CandleLight HomeKit service
+ * @brief Implementation of DEV_CandleLight and DEV_Identify HomeKit services
  *
  * Contains all logic for candle flicker animation, button handling,
- * and HomeKit characteristic updates.
+ * HomeKit characteristic updates, and identify functionality.
  *
  * @license MIT License
  *
@@ -341,4 +341,51 @@ float DEV_CandleLight::calculateSmoothedBrightness(float target, float previous)
     // Exponential moving average
     // smoothed = (alpha × previous) + ((1-alpha) × target)
     return (FLICKER_SMOOTHING * previous) + ((1.0 - FLICKER_SMOOTHING) * target);
+}
+
+// ============================================================================
+// DEV_IDENTIFY - CONSTRUCTOR
+// ============================================================================
+
+DEV_Identify::DEV_Identify() : Service::AccessoryInformation()
+{
+    // Create required characteristics
+    new Characteristic::Identify();
+    new Characteristic::Manufacturer(HOMEKIT_MANUFACTURER);
+    new Characteristic::Model(HOMEKIT_MODEL);
+    new Characteristic::SerialNumber(HOMEKIT_SERIAL);
+
+    Serial.println("Identify service initialized");
+}
+
+// ============================================================================
+// DEV_IDENTIFY - HOMEKIT CALLBACKS
+// ============================================================================
+
+boolean DEV_Identify::update()
+{
+    // Called when user taps "Identify" in Home app
+    // Flash LEDs to visually identify the device
+
+    Serial.println("\n*** IDENTIFY REQUEST ***");
+    Serial.println("Flashing LEDs to identify device");
+
+    // Flash all LEDs white 3 times (1.8 seconds total)
+    for (int flash = 0; flash < 3; flash++)
+    {
+        // Turn all LEDs white (full brightness)
+        fill_solid(leds[0], LED_LENGTH, CRGB::White);
+        fill_solid(leds[1], LED_LENGTH, CRGB::White);
+        FastLED.show();
+        delay(300);
+
+        // Turn off all LEDs
+        fill_solid(leds[0], LED_LENGTH, CRGB::Black);
+        fill_solid(leds[1], LED_LENGTH, CRGB::Black);
+        FastLED.show();
+        delay(300);
+    }
+
+    Serial.println("Identify complete\n");
+    return true;
 }

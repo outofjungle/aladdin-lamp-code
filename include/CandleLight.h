@@ -1,9 +1,10 @@
 /**
  * @file CandleLight.h
- * @brief HomeKit candle light service with dual synchronized LED strips
+ * @brief HomeKit candle light services for dual synchronized LED strips
  *
- * This file implements a HomeKit LightBulb service that controls two
- * APA102 LED strips with realistic candle flicker animation.
+ * This file defines two HomeKit services:
+ * - DEV_CandleLight: LightBulb service with realistic candle flicker animation
+ * - DEV_Identify: AccessoryInformation service with identify functionality
  *
  * @license MIT License
  *
@@ -186,6 +187,38 @@ private:
      * @return Smoothed brightness value
      */
     float calculateSmoothedBrightness(float target, float previous);
+};
+
+/**
+ * @class DEV_Identify
+ * @brief Custom AccessoryInformation service with identify functionality
+ *
+ * Handles HomeKit Identify requests by flashing all LEDs white 3 times
+ * (1.8 seconds total). This provides a clear visual indication to help
+ * users identify which physical device corresponds to the HomeKit accessory
+ * during pairing.
+ *
+ * Note: This service directly controls the LED hardware via the global
+ * leds array to perform the identification flash sequence.
+ */
+struct DEV_Identify : Service::AccessoryInformation
+{
+    /**
+     * Constructor
+     *
+     * Initializes the AccessoryInformation service with required characteristics
+     * including the Identify characteristic and device metadata.
+     */
+    DEV_Identify();
+
+    /**
+     * Handle Identify requests
+     *
+     * Called when user taps "Identify" in Home app during pairing.
+     * Flashes all LEDs white 3 times to visually identify the device.
+     * @return true to indicate successful identification
+     */
+    boolean update() override;
 };
 
 #endif // CANDLELIGHT_H

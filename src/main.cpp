@@ -7,9 +7,10 @@
  *
  * Features:
  * - HomeKit color and brightness control
+ * - Identify feature (flashes LEDs white 3x when tapped in Home app)
  * - Dramatic candle flicker with exponential smoothing
  * - Manual power button control
- * - Factory reset via long button press
+ * - Factory reset via long button press (>10 sec)
  * - Status LED for WiFi/HomeKit connection
  * - Open WiFi setup portal (no password)
  *
@@ -95,14 +96,8 @@ void setup()
 
     // Create HomeKit accessory
     new SpanAccessory();
-    new Service::AccessoryInformation();
-    new Characteristic::Identify();
-    new Characteristic::Manufacturer(HOMEKIT_MANUFACTURER);
-    new Characteristic::Model(HOMEKIT_MODEL);
-    new Characteristic::SerialNumber(HOMEKIT_SERIAL);
-
-    // Add candle light service
-    new DEV_CandleLight();
+    new DEV_Identify();  // Custom AccessoryInformation with identify functionality
+    new DEV_CandleLight();  // Candle light service
 
     // Print setup instructions
     Serial.println("Setup complete!");

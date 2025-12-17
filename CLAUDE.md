@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a HomeKit-controlled ESP32 candle light simulator with two synchronized APA102 LED strips. The device appears in Apple Home as "Aladdin Lamp" and features realistic candle flicker animation.
+This is a HomeKit-controlled ESP32 candle light simulator with two synchronized APA102 LED strips. The device appears in Apple Home as "Aladdin Lamp" and features realistic candle flicker animation with HomeKit identify support.
 
 ## Hardware Configuration
 
@@ -215,7 +215,7 @@ To change WiFi credentials without losing HomeKit pairing:
 ### Factory Reset
 
 To reset WiFi and HomeKit pairing:
-- **Long press** the control button (GPIO 39) for **>3 seconds**
+- **Long press** the control button (GPIO 39) for **>10 seconds**
 - Status LED will indicate reset in progress
 - Device will restart and create "HomeSpan-Setup" AP again for reconfiguration
 
@@ -236,10 +236,10 @@ While connected to serial monitor, HomeSpan provides CLI commands:
 aladdin-lamp-code/
 ├── include/
 │   ├── config.h              # All configuration constants
-│   └── CandleLight.h         # DEV_CandleLight class declaration
+│   └── CandleLight.h         # DEV_CandleLight and DEV_Identify class declarations
 ├── src/
 │   ├── main.cpp              # Application entry point (setup/loop)
-│   └── CandleLight.cpp       # DEV_CandleLight implementation
+│   └── CandleLight.cpp       # DEV_CandleLight and DEV_Identify implementations
 ├── test/
 │   ├── test_config/          # Configuration validation tests
 │   │   └── test_config.cpp
@@ -255,8 +255,8 @@ aladdin-lamp-code/
 
 **File Responsibilities**:
 - **include/config.h**: Hardware pins, LED configuration, default settings, flicker parameters
-- **include/CandleLight.h**: Class declaration with method signatures and documentation
-- **src/CandleLight.cpp**: All DEV_CandleLight logic (constructor, HomeKit callbacks, flicker animation, button handling)
+- **include/CandleLight.h**: DEV_CandleLight and DEV_Identify class declarations with method signatures and documentation
+- **src/CandleLight.cpp**: DEV_CandleLight logic (constructor, HomeKit callbacks, flicker animation, button handling) and DEV_Identify logic (identify functionality)
 - **src/main.cpp**: Minimal entry point (global LED arrays, setup(), loop())
 - **test/**: Unit tests with Unity framework for validation
 - **Makefile**: Convenient targets for build, test, upload, monitor
@@ -279,11 +279,12 @@ aladdin-lamp-code/
    - Short press (< 3 sec): Toggle power with stable-state debouncing
    - Long press (≥ 3 sec): Trigger WiFi AP mode for 5 minutes
    - See `handlePowerButton()` in CandleLight.cpp for implementation
-8. **Factory Reset Button**: GPIO 39 supports factory reset (long press >3 sec, handled by HomeSpan)
-9. **Status LED**: GPIO 22 indicates WiFi/HomeKit connection status (managed by HomeSpan)
-10. **Global LED Arrays**: `CRGB leds[NUM_STRIPS][LED_LENGTH]` defined in main.cpp, accessed via extern in CandleLight.cpp
-11. **WiFi AP Timeout**: 5-minute timeout configured via `homeSpan.setApTimeout()` in main.cpp
-12. **Custom Setup Code**: HomeKit pairing code **792-00-981** configured in include/config.h
+8. **Factory Reset Button**: GPIO 39 supports factory reset (long press >10 sec, handled by HomeSpan)
+9. **Identify Feature**: DEV_Identify service flashes LEDs white 3 times when "Identify" is tapped in Home app
+10. **Status LED**: GPIO 22 indicates WiFi/HomeKit connection status (managed by HomeSpan)
+11. **Global LED Arrays**: `CRGB leds[NUM_STRIPS][LED_LENGTH]` defined in main.cpp, accessed via extern in CandleLight.cpp
+12. **WiFi AP Timeout**: 5-minute timeout configured via `homeSpan.setApTimeout()` in main.cpp
+13. **Custom Setup Code**: HomeKit pairing code **792-00-981** configured in include/config.h
 
 ### Adjusting Flicker Behavior
 
@@ -310,13 +311,13 @@ To customize the candle effect, edit `FLICKER_SMOOTHING` in include/config.h:
   - Check status LED - should be blinking during pairing
 - **Can't connect to WiFi**:
   - Long press power button (GPIO 0) for 3 seconds to enable WiFi AP mode
-  - Alternatively, factory reset via control button (long press >3 sec on GPIO 39)
+  - Alternatively, factory reset via control button (long press >10 sec on GPIO 39)
   - Look for "Aladdin-Setup" AP and reconfigure via captive portal
   - WiFi AP mode auto-disables after 5 minutes
   - Check status LED for connection status
 - **Strips don't match**: Verify both are same orientation; if mirrored, may need to reverse one strip's indices
 - **No flicker visible**: Check that power is ON in Home app and brightness > 0%
-- **Lamp doesn't turn on after power cycle**: Should auto-start at 75% brightness with orange color - check serial output for errors
+- **Lamp doesn't turn on after power cycle**: Should auto-start at 100% brightness with orange color - check serial output for errors
 - **Status LED not working**: Verify GPIO 22 is not conflicting with other peripherals
 - **Power button not responding**:
   - Check button is connected between GPIO 0 and GND (active LOW)
