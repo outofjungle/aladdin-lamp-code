@@ -96,17 +96,44 @@ See `make help` for all available commands.
 
 ### 3. WiFi Setup
 
+**First-Time Setup**:
 1. Power on the device
 2. Connect to **"Aladdin-Setup"** WiFi network (no password)
 3. Configure your home WiFi via captive portal
 4. Device will auto-connect and store credentials
 
+**Reconfigure WiFi**:
+1. Long press power button (GPIO 0) for 3 seconds
+2. WiFi AP "Aladdin-Setup" will activate for 5 minutes
+3. Connect and reconfigure via captive portal
+
 ### 4. HomeKit Pairing
 
+**Setup Code**: `792-00-981`
+
+**Pairing Steps**:
 1. Open **Apple Home** app on iPhone/iPad
 2. Tap **"+"** → **"Add Accessory"**
-3. Enter the **Setup Code** shown in serial monitor
+3. Scan the QR code below OR manually enter setup code: **792-00-981**
 4. Device appears as **"Aladdin Lamp"**
+
+**HomeKit Pairing QR Code**:
+
+<p align="center">
+  <img src="setup-code.png" alt="HomeKit Setup QR Code" width="300"/>
+</p>
+
+<p align="center"><strong>Setup Code: 792-00-981</strong></p>
+
+**To pair using QR code**:
+1. Open the Home app and tap **"+"** → **"Add Accessory"**
+2. Point your camera at the QR code above
+3. Follow the on-screen instructions
+
+**To pair manually without QR code**:
+1. In the Home app, tap "More Options"
+2. Select "Aladdin Lamp" from the list
+3. Enter code: **792-00-981**
 
 ## Usage
 
@@ -119,8 +146,12 @@ See `make help` for all available commands.
 
 ### Physical Buttons
 
-- **GPIO 0**: Press to toggle ON/OFF
-- **GPIO 39**: Long press (>3 sec) for factory reset
+**Power Button (GPIO 0)**:
+- **Short press** (< 3 seconds): Toggle lamp ON/OFF
+- **Long press** (≥ 3 seconds): Enable WiFi setup AP for 5 minutes
+
+**Factory Reset Button (GPIO 39)**:
+- **Long press** (> 3 seconds): Factory reset (clears WiFi and HomeKit pairing)
 
 ### Status LED
 
@@ -215,13 +246,15 @@ aladdin-lamp-code/
 
 **WiFi won't connect**
 - Check 2.4GHz WiFi (5GHz not supported)
-- Factory reset via button on GPIO 39
+- Long press power button (GPIO 0) for 3 seconds to enable WiFi AP
+- Alternatively, factory reset via button on GPIO 39 (long press)
 - Look for "Aladdin-Setup" AP
 
 **HomeKit pairing fails**
-- Verify Setup Code from serial output
-- Try `A` command in serial monitor
-- Check status LED is blinking
+- Setup Code is: **792-00-981**
+- Try scanning the QR code in this README
+- Try `A` command in serial monitor to restart pairing
+- Check status LED is blinking during pairing
 
 **LEDs don't light**
 - Verify APA102 wiring (data + clock pins)
@@ -230,8 +263,10 @@ aladdin-lamp-code/
 
 **Power button doesn't work**
 - Check GPIO 0 to GND connection
-- Verify button is normally-open
-- Check serial for "Power button pressed" messages
+- Verify button is normally-open (connects to GND when pressed)
+- Short press (< 3 sec) should toggle power ON/OFF
+- Long press (≥ 3 sec) should enable WiFi AP mode
+- Check serial monitor for button feedback messages
 
 ## Testing
 

@@ -66,7 +66,7 @@ CRGB leds[NUM_STRIPS][LED_LENGTH];
 void setup()
 {
     Serial.begin(115200);
-    delay(1000);  // Give serial time to initialize
+    delay(1000); // Give serial time to initialize
 
     Serial.println("\n\n================================");
     Serial.println("Aladdin Lamp - HomeKit Candle");
@@ -74,10 +74,11 @@ void setup()
 
     // Configure HomeSpan before begin()
     homeSpan.setApSSID(WIFI_AP_SSID);
-    homeSpan.setApPassword("");  // Open network (no password)
+    homeSpan.setApPassword(""); // Open network (no password)
+    homeSpan.setApTimeout(WIFI_AP_TIMEOUT);  // 5-minute AP timeout
+    homeSpan.setPairingCode(HOMEKIT_SETUP_CODE);  // Custom pairing code
     homeSpan.setStatusPin(STATUS_LED_PIN);
     homeSpan.setControlPin(CONTROL_BUTTON_PIN);
-    homeSpan.enableAutoStartAP();
 
     // Initialize HomeSpan
     homeSpan.begin(Category::Lighting, HOMEKIT_NAME);
@@ -97,7 +98,8 @@ void setup()
     Serial.println("Setup complete!");
     Serial.println("\nWiFi Setup AP: '" WIFI_AP_SSID "' (OPEN - no password)");
     Serial.println("\nButtons:");
-    Serial.println("  - GPIO 0:  Press to toggle lamp ON/OFF");
+    Serial.println("  - GPIO 0:  Short press to toggle lamp ON/OFF");
+    Serial.println("             Long press (3 sec) to enable WiFi AP for 5 min");
     Serial.println("  - GPIO 39: Long press (>3 sec) for factory reset");
     Serial.println("\nStatus LED (GPIO 22):");
     Serial.println("  - Blinking: Not connected/pairing");
@@ -108,6 +110,9 @@ void setup()
     Serial.println("3. Open Home app on iPhone/iPad");
     Serial.println("4. Tap '+' > Add Accessory");
     Serial.println("5. Scan or enter the Setup Code shown above");
+    Serial.println("\nTo reconfigure WiFi:");
+    Serial.println("- Long press power button (GPIO 0) for 3 seconds");
+    Serial.println("- WiFi AP will be enabled for 5 minutes");
     Serial.println("================================\n");
 }
 

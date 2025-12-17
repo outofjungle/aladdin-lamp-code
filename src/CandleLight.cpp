@@ -61,6 +61,8 @@ DEV_CandleLight::DEV_CandleLight() : Service::LightBulb()
     buttonLastStableState = HIGH;
     buttonCurrentReading = HIGH;
     buttonPreviousReading = HIGH;
+    buttonPressStartTime = 0;
+    longPressTriggered = false;
 
     // Initialize smoothing arrays
     for (int strip = 0; strip < NUM_STRIPS; strip++)
@@ -185,14 +187,45 @@ void DEV_CandleLight::handlePowerButton()
         {
             buttonLastStableState = buttonCurrentReading;
 
-            // Only trigger on button press (HIGH→LOW transition)
+            // Button press detected (HIGH→LOW transition)
             if (buttonLastStableState == LOW)
             {
-                // Toggle power state
-                power->setVal(!power->getVal());
+                // Record press start time for long press detection
+                buttonPressStartTime = millis();
+                longPressTriggered = false;
+            }
+            // Button release detected (LOW→HIGH transition)
+            else if (buttonLastStableState == HIGH)
+            {
+                // Only toggle power if it was a short press (not long press)
+                if (!longPressTriggered)
+                {
+                    power->setVal(!power->getVal());
+                    Serial.print("Power button pressed - Lamp ");
+                    Serial.println(power->getVal() ? "ON" : "OFF");
+                }
+                // Reset long press flag for next press
+                longPressTriggered = false;
+            }
+        }
+        // Button is being held down (stable LOW state)
+        else if (buttonLastStableState == LOW && !longPressTriggered)
+        {
+            // Check if long press duration exceeded
+            if ((millis() - buttonPressStartTime) >= LONG_PRESS_DURATION)
+            {
+                longPressTriggered = true;
 
-                Serial.print("Power button pressed - Lamp ");
-                Serial.println(power->getVal() ? "ON" : "OFF");
+                // Trigger WiFi AP mode for 5 minutes
+                homeSpan.setApTimeout(WIFI_AP_TIMEOUT);
+                homeSpan.processSerialCommand("A");  // Start AP mode
+
+                Serial.println("\n*** LONG PRESS DETECTED ***");
+                Serial.println("WiFi AP mode enabled for 5 minutes");
+                Serial.print("Connect to: ");
+                Serial.println(WIFI_AP_SSID);
+                Serial.println("AP will auto-disable after timeout");
+                Serial.println("***************************\n");
             }
         }
     }

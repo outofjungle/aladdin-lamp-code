@@ -67,6 +67,8 @@ struct DEV_CandleLight : Service::LightBulb
     bool buttonLastStableState;       // Last confirmed stable button state
     bool buttonCurrentReading;        // Current GPIO reading
     bool buttonPreviousReading;       // Previous GPIO reading
+    uint32_t buttonPressStartTime;    // When button press started (for long press)
+    bool longPressTriggered;          // Flag to prevent multiple long press triggers
 
     // ========================================================================
     // FLICKER STATE
@@ -132,13 +134,14 @@ struct DEV_CandleLight : Service::LightBulb
 
 private:
     /**
-     * Handle power button press with debouncing
+     * Handle power button press with debouncing and long press detection
      *
      * Uses stable-state detection algorithm:
      * 1. Read current button state
      * 2. If changed from previous, reset timer
      * 3. If stable for DEBOUNCE_DELAY ms, accept new state
-     * 4. Only trigger on button press (HIGH→LOW transition)
+     * 4. Short press: Toggle power (HIGH→LOW transition)
+     * 5. Long press (3 sec): Enable WiFi AP mode for 5 minutes
      */
     void handlePowerButton();
 

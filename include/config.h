@@ -44,25 +44,25 @@
 #define STRIP2_CLOCK_PIN 18
 
 // Control Pins
-#define STATUS_LED_PIN 22        // WiFi/HomeKit status indicator
-#define CONTROL_BUTTON_PIN 39    // Factory reset button (long press >3 sec)
-#define POWER_BUTTON_PIN 0       // Manual power toggle button
+#define STATUS_LED_PIN 22     // WiFi/HomeKit status indicator
+#define CONTROL_BUTTON_PIN 39 // Factory reset button (long press >3 sec)
+#define POWER_BUTTON_PIN 0    // Manual power toggle button
 
 // ============================================================================
 // LED CONFIGURATION
 // ============================================================================
 
-#define LED_LENGTH 8             // Number of LEDs per strip
-#define NUM_STRIPS 2             // Number of LED strips
+#define LED_LENGTH 8 // Number of LEDs per strip
+#define NUM_STRIPS 2 // Number of LED strips
 
 // ============================================================================
 // DEFAULT SETTINGS (Power-On State)
 // ============================================================================
 
 // Default candle color (orange flame)
-#define DEFAULT_HUE 25           // HSV Hue: 0-360 degrees
-#define DEFAULT_SATURATION 100   // HSV Saturation: 0-100%
-#define DEFAULT_BRIGHTNESS 100   // Brightness: 0-100% (maps to LED count)
+#define DEFAULT_HUE 25         // HSV Hue: 0-360 degrees
+#define DEFAULT_SATURATION 100 // HSV Saturation: 0-100%
+#define DEFAULT_BRIGHTNESS 100 // Brightness: 0-100% (maps to LED count)
 
 // ============================================================================
 // FLICKER ALGORITHM PARAMETERS
@@ -123,6 +123,22 @@
  */
 #define DEBOUNCE_DELAY 50
 
+/**
+ * Long press duration for WiFi AP mode (milliseconds)
+ *
+ * How long POWER_BUTTON_PIN must be held to trigger WiFi AP mode.
+ * 3000ms (3 seconds) prevents accidental activation.
+ */
+#define LONG_PRESS_DURATION 3000
+
+/**
+ * WiFi AP timeout (seconds)
+ *
+ * How long the WiFi setup AP remains active after long press.
+ * 300 seconds = 5 minutes.
+ */
+#define WIFI_AP_TIMEOUT 300
+
 // ============================================================================
 // HOMEKIT CONFIGURATION
 // ============================================================================
@@ -135,5 +151,8 @@
 #define HOMEKIT_MANUFACTURER "Custom"
 #define HOMEKIT_MODEL "Dual-Strip Candle v1.1"
 #define HOMEKIT_SERIAL "ALC-001"
+
+// HomeKit Setup Code
+#define HOMEKIT_SETUP_CODE "79200981"
 
 #endif // CONFIG_H
