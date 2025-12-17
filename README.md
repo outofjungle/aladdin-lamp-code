@@ -96,16 +96,12 @@ See `make help` for all available commands.
 
 ### 3. WiFi Setup
 
-**First-Time Setup**:
-1. Power on the device
-2. Connect to **"Aladdin-Setup"** WiFi network (no password)
-3. Configure your home WiFi via captive portal
-4. Device will auto-connect and store credentials
-
-**Reconfigure WiFi**:
-1. Long press power button (GPIO 0) for 3 seconds
-2. WiFi AP "Aladdin-Setup" will activate for 5 minutes
-3. Connect and reconfigure via captive portal
+**Configure WiFi**:
+1. Long press power button (GPIO 0) for > 3 seconds
+2. WiFi AP **"Aladdin-Setup"** will activate for 5 minutes
+3. Connect to **"Aladdin-Setup"** WiFi network (no password)
+4. Configure your home WiFi via captive portal
+5. Device will store credentials and auto-connect
 
 ### 4. HomeKit Pairing
 
@@ -120,7 +116,7 @@ See `make help` for all available commands.
 **HomeKit Pairing QR Code**:
 
 <p align="center">
-  <img src="setup-code.png" alt="HomeKit Setup QR Code" width="300"/>
+  <img src="setup-code.png" alt="HomeKit Setup QR Code" width="150"/>
 </p>
 
 <p align="center"><strong>Setup Code: 792-00-981</strong></p>
@@ -148,10 +144,10 @@ See `make help` for all available commands.
 
 **Power Button (GPIO 0)**:
 - **Short press** (< 3 seconds): Toggle lamp ON/OFF
-- **Long press** (≥ 3 seconds): Enable WiFi setup AP for 5 minutes
+- **Long press** (> 3 seconds): Enable WiFi setup AP for 5 minutes
 
 **Factory Reset Button (GPIO 39)**:
-- **Long press** (> 3 seconds): Factory reset (clears WiFi and HomeKit pairing)
+- **Long press** (> 10 seconds): Factory reset (clears WiFi and HomeKit pairing)
 
 ### Status LED
 

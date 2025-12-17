@@ -74,9 +74,9 @@ void setup()
 
     // Configure HomeSpan before begin()
     homeSpan.setApSSID(WIFI_AP_SSID);
-    homeSpan.setApPassword(""); // Open network (no password)
-    homeSpan.setApTimeout(WIFI_AP_TIMEOUT);  // 5-minute AP timeout
-    homeSpan.setPairingCode(HOMEKIT_SETUP_CODE);  // Custom pairing code
+    homeSpan.setApPassword("");                  // Open network (no password)
+    homeSpan.setApTimeout(WIFI_AP_TIMEOUT);      // 5-minute AP timeout
+    homeSpan.setPairingCode(HOMEKIT_SETUP_CODE); // Custom pairing code
     homeSpan.setStatusPin(STATUS_LED_PIN);
     homeSpan.setControlPin(CONTROL_BUTTON_PIN);
 
@@ -100,7 +100,7 @@ void setup()
     Serial.println("\nButtons:");
     Serial.println("  - GPIO 0:  Short press to toggle lamp ON/OFF");
     Serial.println("             Long press (3 sec) to enable WiFi AP for 5 min");
-    Serial.println("  - GPIO 39: Long press (>3 sec) for factory reset");
+    Serial.println("  - GPIO 39: Long press (>10 sec) for factory reset");
     Serial.println("\nStatus LED (GPIO 22):");
     Serial.println("  - Blinking: Not connected/pairing");
     Serial.println("  - Solid: Connected and paired");
