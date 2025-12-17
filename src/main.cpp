@@ -43,9 +43,12 @@
  * SOFTWARE.
  */
 
+// Third-party libraries
 #include <Arduino.h>
 #include "HomeSpan.h"
 #include <FastLED.h>
+
+// Project headers
 #include "config.h"
 #include "CandleLight.h"
 
@@ -70,6 +73,10 @@ void setup()
     {
         ; // wait for serial port to connect. Needed for native USB
     }
+
+    // Initialize random number generator with ESP32 hardware RNG
+    // This ensures different flicker patterns on each power cycle
+    randomSeed(esp_random());
 
     Serial.println("\n\n================================");
     Serial.println("Aladdin Lamp - HomeKit Candle");

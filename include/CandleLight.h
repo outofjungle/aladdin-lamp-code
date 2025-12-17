@@ -31,9 +31,12 @@
 #ifndef CANDLELIGHT_H
 #define CANDLELIGHT_H
 
+// Third-party libraries
 #include <Arduino.h>
 #include "HomeSpan.h"
 #include <FastLED.h>
+
+// Project headers
 #include "config.h"
 
 /**

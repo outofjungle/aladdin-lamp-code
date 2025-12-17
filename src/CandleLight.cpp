@@ -64,12 +64,13 @@ DEV_CandleLight::DEV_CandleLight() : Service::LightBulb()
     buttonPressStartTime = 0;
     longPressTriggered = false;
 
-    // Initialize smoothing arrays
+    // Initialize smoothing arrays to midpoint of flicker range
+    // This prevents large jumps on first animation frame
     for (int strip = 0; strip < NUM_STRIPS; strip++)
     {
         for (int i = 0; i < LED_LENGTH; i++)
         {
-            previousBrightness[strip][i] = 0.0;
+            previousBrightness[strip][i] = (FLICKER_BRIGHTNESS_MIN + FLICKER_BRIGHTNESS_MAX) / 2.0;
         }
     }
 
@@ -216,8 +217,7 @@ void DEV_CandleLight::handlePowerButton()
             {
                 longPressTriggered = true;
 
-                // Trigger WiFi AP mode for 5 minutes
-                homeSpan.setApTimeout(WIFI_AP_TIMEOUT);
+                // Trigger WiFi AP mode (timeout already set in main.cpp setup)
                 homeSpan.processSerialCommand("A"); // Start AP mode
 
                 Serial.println("\n*** LONG PRESS DETECTED ***");
@@ -256,12 +256,14 @@ void DEV_CandleLight::applyFlicker(int fullLEDs, float fraction, int baseHue, in
 
         // Generate hue variation (toward yellow/orange)
         int flickerHue = baseHue + random(FLICKER_HUE_MIN, FLICKER_HUE_MAX);
-        flickerHue = (flickerHue + 360) % 360; // Wrap around
+        // Wrap to 0-360 range (handles negative values correctly)
+        flickerHue = ((flickerHue % 360) + 360) % 360;
 
-        // Convert to FastLED CHSV format
-        uint8_t finalBrightness = map((int)smoothedBrightness, 0, 100, 0, 255);
+        // Convert to FastLED CHSV format (0-255 range)
+        uint8_t finalHue = map(flickerHue, 0, 360, 0, 255);
+        uint8_t finalBrightness = map((int)smoothedBrightness, FLICKER_BRIGHTNESS_MIN, FLICKER_BRIGHTNESS_MAX, 0, 255);
         uint8_t finalSaturation = map(baseSat, 0, 100, 0, 255);
-        CHSV color(flickerHue, finalSaturation, finalBrightness);
+        CHSV color(finalHue, finalSaturation, finalBrightness);
 
         // Apply to both strips (synchronized)
         leds[0][i] = color;
@@ -284,12 +286,15 @@ void DEV_CandleLight::applyFlicker(int fullLEDs, float fraction, int baseHue, in
 
         // Generate hue variation
         int flickerHue = baseHue + random(FLICKER_HUE_MIN, FLICKER_HUE_MAX);
-        flickerHue = (flickerHue + 360) % 360;
+        // Wrap to 0-360 range (handles negative values correctly)
+        flickerHue = ((flickerHue % 360) + 360) % 360;
 
-        // Scale by fractional amount
-        uint8_t finalBrightness = map((int)(smoothedBrightness * fraction), 0, 100, 0, 255);
+        // Scale by fractional amount and convert to FastLED CHSV format (0-255 range)
+        uint8_t finalHue = map(flickerHue, 0, 360, 0, 255);
+        int scaledBrightness = (int)(smoothedBrightness * fraction);
+        uint8_t finalBrightness = map(constrain(scaledBrightness, FLICKER_BRIGHTNESS_MIN, FLICKER_BRIGHTNESS_MAX), FLICKER_BRIGHTNESS_MIN, FLICKER_BRIGHTNESS_MAX, 0, 255);
         uint8_t finalSaturation = map(baseSat, 0, 100, 0, 255);
-        CHSV color(flickerHue, finalSaturation, finalBrightness);
+        CHSV color(finalHue, finalSaturation, finalBrightness);
 
         // Apply to both strips
         leds[0][fullLEDs] = color;
