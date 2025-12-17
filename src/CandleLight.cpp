@@ -40,7 +40,7 @@ extern CRGB leds[NUM_STRIPS][LED_LENGTH];
 DEV_CandleLight::DEV_CandleLight() : Service::LightBulb()
 {
     // Initialize HomeKit characteristics with defaults
-    power = new Characteristic::On(1);  // Start ON after power cycle
+    power = new Characteristic::On(1); // Start ON after power cycle
     hue = new Characteristic::Hue(DEFAULT_HUE);
     saturation = new Characteristic::Saturation(DEFAULT_SATURATION);
     brightness = new Characteristic::Brightness(DEFAULT_BRIGHTNESS);
@@ -48,7 +48,7 @@ DEV_CandleLight::DEV_CandleLight() : Service::LightBulb()
     // Initialize FastLED for both APA102 strips
     FastLED.addLeds<APA102, STRIP1_DATA_PIN, STRIP1_CLOCK_PIN, BGR>(leds[0], LED_LENGTH);
     FastLED.addLeds<APA102, STRIP2_DATA_PIN, STRIP2_CLOCK_PIN, BGR>(leds[1], LED_LENGTH);
-    FastLED.setBrightness(255);  // Use full brightness, control via color values
+    FastLED.setBrightness(255); // Use full brightness, control via color values
 
     // Turn off all LEDs initially
     fill_solid(leds[0], LED_LENGTH, CRGB::Black);
@@ -218,7 +218,7 @@ void DEV_CandleLight::handlePowerButton()
 
                 // Trigger WiFi AP mode for 5 minutes
                 homeSpan.setApTimeout(WIFI_AP_TIMEOUT);
-                homeSpan.processSerialCommand("A");  // Start AP mode
+                homeSpan.processSerialCommand("A"); // Start AP mode
 
                 Serial.println("\n*** LONG PRESS DETECTED ***");
                 Serial.println("WiFi AP mode enabled for 5 minutes");
@@ -256,7 +256,7 @@ void DEV_CandleLight::applyFlicker(int fullLEDs, float fraction, int baseHue, in
 
         // Generate hue variation (toward yellow/orange)
         int flickerHue = baseHue + random(FLICKER_HUE_MIN, FLICKER_HUE_MAX);
-        flickerHue = (flickerHue + 360) % 360;  // Wrap around
+        flickerHue = (flickerHue + 360) % 360; // Wrap around
 
         // Convert to FastLED CHSV format
         uint8_t finalBrightness = map((int)smoothedBrightness, 0, 100, 0, 255);

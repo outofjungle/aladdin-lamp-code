@@ -66,7 +66,10 @@ CRGB leds[NUM_STRIPS][LED_LENGTH];
 void setup()
 {
     Serial.begin(115200);
-    delay(1000); // Give serial time to initialize
+    while (!Serial)
+    {
+        ; // wait for serial port to connect. Needed for native USB
+    }
 
     Serial.println("\n\n================================");
     Serial.println("Aladdin Lamp - HomeKit Candle");
